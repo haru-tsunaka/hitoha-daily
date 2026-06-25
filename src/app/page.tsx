@@ -1,65 +1,207 @@
-import Image from "next/image";
+import { createClient } from '@/lib/supabase/server';
+import { redirect } from 'next/navigation';
+import { revalidatePath } from 'next/cache';
+import type { DailyLog } from '@/lib/types';
+import MorningForm from '@/components/MorningForm';
+import EveningForm from '@/components/EveningForm';
+import Streak from '@/components/Streak';
+import Timeline from '@/components/Timeline';
 
-export default function Home() {
+function getToday() {
+  const now = new Date();
+  const jst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+  return jst.toISOString().split('T')[0];
+}
+
+function getWeekDates() {
+  const dates: string[] = [];
+  const now = new Date();
+  const jst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(jst);
+    d.setDate(d.getDate() - i);
+    dates.push(d.toISOString().split('T')[0]);
+  }
+  return dates;
+}
+
+async function calculateStreak(supabase: ReturnType<Awaited<ReturnType<typeof createClient>> extends infer T ? () => T : never>, userId: string) {
+  const { data: logs } = await (await createClient())
+    .from('daily_logs')
+    .select('date')
+    .eq('user_id', userId)
+    .not('morning_goal', 'is', null)
+    .order('date', { ascending: false })
+    .limit(365);
+
+  if (!logs || logs.length === 0) return 0;
+
+  let streak = 0;
+  const today = getToday();
+  const checkDate = new Date(today + 'T00:00:00+09:00');
+
+  for (let i = 0; i < 365; i++) {
+    const dateStr = checkDate.toISOString().split('T')[0];
+    if (logs.some((l) => l.date === dateStr)) {
+      streak++;
+    } else if (i > 0) {
+      break;
+    }
+    checkDate.setDate(checkDate.getDate() - 1);
+  }
+
+  return streak;
+}
+
+export default async function HomePage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect('/login');
+
+  const today = getToday();
+  const weekDates = getWeekDates();
+
+  // 今日のログ
+  const { data: todayLog } = await supabase
+    .from('daily_logs')
+    .select('*')
+    .eq('user_id', user.id)
+    .eq('date', today)
+    .single();
+
+  // 直近7日のログ
+  const { data: weekLogs } = await supabase
+    .from('daily_logs')
+    .select('*')
+    .eq('user_id', user.id)
+    .in('date', weekDates)
+    .order('date', { ascending: false });
+
+  // ストリーク計算
+  const { data: streakLogs } = await supabase
+    .from('daily_logs')
+    .select('date')
+    .eq('user_id', user.id)
+    .not('morning_goal', 'is', null)
+    .order('date', { ascending: false })
+    .limit(365);
+
+  let streak = 0;
+  if (streakLogs && streakLogs.length > 0) {
+    const checkDate = new Date(today + 'T00:00:00+09:00');
+    for (let i = 0; i < 365; i++) {
+      const dateStr = checkDate.toISOString().split('T')[0];
+      if (streakLogs.some((l) => l.date === dateStr)) {
+        streak++;
+      } else if (i > 0) {
+        break;
+      }
+      checkDate.setDate(checkDate.getDate() - 1);
+    }
+  }
+
+  // 7日分のデータを埋める（記録がない日も表示）
+  const weekData: DailyLog[] = weekDates.map((date) => {
+    const found = weekLogs?.find((l) => l.date === date);
+    if (found) return found as DailyLog;
+    return {
+      id: '',
+      user_id: user.id,
+      date,
+      morning_goal: null,
+      task_1: null,
+      task_2: null,
+      task_3: null,
+      task_1_done: false,
+      task_2_done: false,
+      task_3_done: false,
+      evening_note: null,
+      created_at: '',
+      updated_at: '',
+    };
+  }).reverse();
+
+  async function saveMorning(formData: FormData) {
+    'use server';
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) redirect('/login');
+
+    const today = getToday();
+    const data = {
+      morning_goal: (formData.get('morning_goal') as string) || null,
+      task_1: (formData.get('task_1') as string) || null,
+      task_2: (formData.get('task_2') as string) || null,
+      task_3: (formData.get('task_3') as string) || null,
+      updated_at: new Date().toISOString(),
+    };
+
+    const { data: existing } = await supabase
+      .from('daily_logs')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('date', today)
+      .single();
+
+    if (existing) {
+      await supabase.from('daily_logs').update(data).eq('id', existing.id);
+    } else {
+      await supabase.from('daily_logs').insert({
+        ...data,
+        user_id: user.id,
+        date: today,
+      });
+    }
+
+    revalidatePath('/');
+  }
+
+  async function saveEvening(formData: FormData) {
+    'use server';
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) redirect('/login');
+
+    const today = getToday();
+    const data = {
+      task_1_done: formData.get('task_1_done') === 'true',
+      task_2_done: formData.get('task_2_done') === 'true',
+      task_3_done: formData.get('task_3_done') === 'true',
+      evening_note: (formData.get('evening_note') as string) || null,
+      updated_at: new Date().toISOString(),
+    };
+
+    await supabase
+      .from('daily_logs')
+      .update(data)
+      .eq('user_id', user.id)
+      .eq('date', today);
+
+    revalidatePath('/');
+  }
+
+  const status = todayLog?.evening_note ? 'complete' : (todayLog?.morning_goal || todayLog?.task_1) ? 'morning' : 'empty';
+  const statusLabel = { complete: '今日の記録完了', morning: '振り返りがまだです', empty: 'まだ記録していません' };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="max-w-lg mx-auto px-4 py-6 space-y-5">
+      {/* ステータス + ストリーク */}
+      <div className="flex items-center gap-4">
+        <div className="flex-1">
+          <p className="text-xs text-brand-muted">{today.replace(/-/g, '/')}</p>
+          <p className="text-sm font-medium mt-0.5">{statusLabel[status]}</p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+        <Streak count={streak} />
+      </div>
+
+      {/* 朝の記録 */}
+      <MorningForm log={todayLog as DailyLog | null} saveAction={saveMorning} />
+
+      {/* 夜の振り返り */}
+      <EveningForm log={todayLog as DailyLog | null} saveAction={saveEvening} />
+
+      {/* 直近7日間 */}
+      <Timeline logs={weekData} />
     </div>
   );
 }
