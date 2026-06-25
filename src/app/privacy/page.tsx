@@ -73,7 +73,7 @@ export default function PrivacyPage() {
             個人情報の取り扱いに関するお問い合わせは、下記までご連絡ください。
           </p>
           <p className="mt-1">
-            メール：<a href="mailto:info@tsuna-ka.com" className="underline hover:text-navy transition-colors">info@tsuna-ka.com</a>
+            メール：<a href="mailto:official@tsunaka.com" className="underline hover:text-navy transition-colors">official@tsunaka.com</a>
           </p>
         </section>
       </div>
