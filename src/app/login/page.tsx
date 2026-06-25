@@ -50,17 +50,15 @@ export default function LoginPage() {
         setLoading(false);
         return;
       }
-      const { data: signUpData, error } = await supabase.auth.signUp({ email, password });
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { display_name: nickname.trim() } },
+      });
       if (error) {
         setError(error.message);
         setLoading(false);
         return;
-      }
-      if (signUpData.user) {
-        await supabase.from('profiles').insert({
-          id: signUpData.user.id,
-          display_name: nickname.trim(),
-        });
       }
       setMessage('確認メールを送信しました。メールを確認してください。');
       setLoading(false);

@@ -61,12 +61,20 @@ export default async function HomePage() {
   const today = getToday();
   const weekDates = getWeekDates();
 
-  // プロフィール取得
-  const { data: profile } = await supabase
+  // プロフィール取得（なければuser_metadataから自動作成）
+  let { data: profile } = await supabase
     .from('profiles')
     .select('display_name')
     .eq('id', user.id)
     .single();
+
+  if (!profile && user.user_metadata?.display_name) {
+    await supabase.from('profiles').insert({
+      id: user.id,
+      display_name: user.user_metadata.display_name,
+    });
+    profile = { display_name: user.user_metadata.display_name };
+  }
 
   // 曜日
   const todayDate = new Date(today + 'T00:00:00Z');
