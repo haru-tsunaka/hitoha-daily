@@ -3,6 +3,8 @@ import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import type { DailyLog } from '@/lib/types';
 import MorningForm from '@/components/MorningForm';
+
+export const dynamic = 'force-dynamic';
 import EveningForm from '@/components/EveningForm';
 import Streak from '@/components/Streak';
 import Timeline from '@/components/Timeline';
