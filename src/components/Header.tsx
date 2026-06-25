@@ -23,7 +23,7 @@ export default function Header() {
         <div className="flex items-center gap-4">
           <Link href="/" className="flex flex-col">
             <span className="font-serif text-white text-base font-bold tracking-wider leading-tight">Hitoha Daily</span>
-            <span className="text-white/35 text-[9px] tracking-wide leading-tight hidden md:block">繋叶 — 毎日を、ひとはにのせて。</span>
+            <span className="text-white/35 text-[9px] tracking-wide leading-tight hidden md:block">繋叶 — いまと、これからを、ひとはにのせて。</span>
           </Link>
           <nav className="flex items-center gap-3">
             <Link
