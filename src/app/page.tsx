@@ -88,15 +88,15 @@ export default async function HomePage() {
   let streak = 0;
   if (streakLogs && streakLogs.length > 0) {
     const activeLogs = streakLogs.filter((l) => l.morning_goal || l.task_1);
-    const checkDate = new Date(today + 'T00:00:00+09:00');
     for (let i = 0; i < 365; i++) {
-      const dateStr = checkDate.toISOString().split('T')[0];
+      const d = new Date(today + 'T00:00:00Z');
+      d.setUTCDate(d.getUTCDate() - i);
+      const dateStr = d.toISOString().split('T')[0];
       if (activeLogs.some((l) => l.date === dateStr)) {
         streak++;
       } else if (i > 0) {
         break;
       }
-      checkDate.setDate(checkDate.getDate() - 1);
     }
   }
 
