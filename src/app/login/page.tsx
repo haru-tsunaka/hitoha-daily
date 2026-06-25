@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -96,6 +97,10 @@ export default function LoginPage() {
             {isSignUp ? 'アカウントをお持ちの方はこちら' : 'はじめての方はこちら'}
           </button>
         </form>
+
+        <p className="text-center mt-4 text-[10px] text-brand-muted/60">
+          ご利用により<Link href="/privacy" className="underline hover:text-navy transition-colors">プライバシーポリシー</Link>に同意したものとみなします
+        </p>
       </div>
     </div>
   );
