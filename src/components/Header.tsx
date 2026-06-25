@@ -4,10 +4,28 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 export default function Header() {
   const pathname = usePathname();
   const router = useRouter();
+  const [displayName, setDisplayName] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data } = await supabase
+          .from('profiles')
+          .select('display_name')
+          .eq('id', user.id)
+          .single();
+        if (data?.display_name) setDisplayName(data.display_name);
+      }
+    };
+    if (pathname !== '/login') fetchProfile();
+  }, [pathname]);
 
   if (pathname === '/login') return null;
 
@@ -23,7 +41,7 @@ export default function Header() {
         <div className="flex items-center gap-4">
           <Link href="/" className="flex flex-col">
             <span className="font-serif text-white text-base font-bold tracking-wider leading-tight">Hitoha Daily</span>
-            <span className="text-white/35 text-[9px] tracking-wide leading-tight hidden md:block">繋叶 — いまと、これからを、ひとはにのせて。</span>
+            <span className="text-white/35 text-[9px] tracking-wide leading-tight hidden md:block">繋叶 -- いまと、これからを、ひとはにのせて。</span>
           </Link>
           <nav className="flex items-center gap-3">
             <Link
@@ -44,12 +62,17 @@ export default function Header() {
             </Link>
           </nav>
         </div>
-        <button
-          onClick={handleLogout}
-          className="text-white/50 hover:text-white/80 text-xs tracking-wide transition-colors py-2 pl-4"
-        >
-          Logout
-        </button>
+        <div className="flex items-center gap-3">
+          {displayName && (
+            <span className="text-white/60 text-xs hidden sm:block">{displayName}</span>
+          )}
+          <button
+            onClick={handleLogout}
+            className="text-white/50 hover:text-white/80 text-xs tracking-wide transition-colors py-2 pl-4"
+          >
+            Logout
+          </button>
+        </div>
       </div>
     </header>
   );

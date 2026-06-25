@@ -61,6 +61,18 @@ export default async function HomePage() {
   const today = getToday();
   const weekDates = getWeekDates();
 
+  // プロフィール取得
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('display_name')
+    .eq('id', user.id)
+    .single();
+
+  // 曜日
+  const todayDate = new Date(today + 'T00:00:00Z');
+  const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
+  const todayWeekday = weekdays[todayDate.getUTCDay()];
+
   // 今日のログ
   const { data: todayLog } = await supabase
     .from('daily_logs')
@@ -188,8 +200,11 @@ export default async function HomePage() {
       {/* ステータス + ストリーク */}
       <div className="flex items-center gap-4">
         <div className="flex-1">
-          <p className="text-xs text-brand-muted">{today.replace(/-/g, '/')}</p>
-          <p className="text-sm font-medium mt-0.5">{statusLabel[status]}</p>
+          <p className="text-xs text-brand-muted">{today.replace(/-/g, '/')}（{todayWeekday}）</p>
+          <p className="text-sm font-medium mt-0.5">
+            {profile?.display_name && <span className="text-navy">{profile.display_name}さん、</span>}
+            {statusLabel[status]}
+          </p>
         </div>
         <Streak count={streak} />
       </div>

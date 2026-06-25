@@ -8,6 +8,7 @@ import Link from 'next/link';
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [nickname, setNickname] = useState('');
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
@@ -23,11 +24,22 @@ export default function LoginPage() {
     const supabase = createClient();
 
     if (isSignUp) {
-      const { error } = await supabase.auth.signUp({ email, password });
+      if (!nickname.trim()) {
+        setError('ニックネームを入力してください');
+        setLoading(false);
+        return;
+      }
+      const { data: signUpData, error } = await supabase.auth.signUp({ email, password });
       if (error) {
         setError(error.message);
         setLoading(false);
         return;
+      }
+      if (signUpData.user) {
+        await supabase.from('profiles').insert({
+          id: signUpData.user.id,
+          display_name: nickname.trim(),
+        });
       }
       setMessage('確認メールを送信しました。メールを確認してください。');
       setLoading(false);
@@ -65,6 +77,20 @@ export default function LoginPage() {
               required
             />
           </div>
+
+          {isSignUp && (
+            <div className="mb-5">
+              <label className="block text-xs text-brand-muted mb-1.5 tracking-wide">ニックネーム</label>
+              <input
+                type="text"
+                value={nickname}
+                onChange={(e) => setNickname(e.target.value)}
+                placeholder="表示名"
+                className="w-full px-4 py-2.5 rounded-lg border border-brand-border text-sm focus:outline-none focus:border-navy transition-colors"
+                required
+              />
+            </div>
+          )}
 
           <div className="mb-6">
             <label className="block text-xs text-brand-muted mb-1.5 tracking-wide">パスワード</label>
