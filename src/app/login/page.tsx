@@ -50,7 +50,7 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         <div className="text-center mb-10">
           <h1 className="font-serif text-navy text-3xl font-bold tracking-wider mb-2">Hitoha Daily</h1>
-          <p className="text-brand-muted text-xs tracking-wide leading-relaxed">毎日の目標と振り返りを、ひとはにのせて。</p>
+          <p className="text-brand-muted text-xs tracking-wide leading-relaxed">繋叶 — 毎日を、ひとはにのせて。</p>
         </div>
 
         <form onSubmit={handleSubmit} className="bg-white rounded-xl p-8 shadow-sm border border-brand-border">

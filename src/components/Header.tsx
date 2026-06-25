@@ -21,8 +21,9 @@ export default function Header() {
     <header className="bg-navy sticky top-0 z-50">
       <div className="max-w-2xl mx-auto px-4 h-12 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Link href="/" className="font-serif text-white text-base font-bold tracking-wider">
-            Hitoha Daily
+          <Link href="/" className="flex flex-col">
+            <span className="font-serif text-white text-base font-bold tracking-wider leading-tight">Hitoha Daily</span>
+            <span className="text-white/35 text-[9px] tracking-wide leading-tight hidden md:block">繋叶 — 毎日を、ひとはにのせて。</span>
           </Link>
           <nav className="flex items-center gap-3">
             <Link
