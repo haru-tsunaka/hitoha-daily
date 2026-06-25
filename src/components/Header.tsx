@@ -53,6 +53,14 @@ export default function Header() {
               Today
             </Link>
             <Link
+              href="/history"
+              className={`text-sm py-2 transition-colors ${
+                pathname === '/history' ? 'text-white' : 'text-white/50 hover:text-white/80'
+              }`}
+            >
+              History
+            </Link>
+            <Link
               href="/report"
               className={`text-sm py-2 transition-colors ${
                 pathname === '/report' ? 'text-white' : 'text-white/50 hover:text-white/80'
