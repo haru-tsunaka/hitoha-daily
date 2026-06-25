@@ -77,21 +77,21 @@ export default async function HomePage() {
     .in('date', weekDates)
     .order('date', { ascending: false });
 
-  // ストリーク計算
+  // ストリーク計算（morning_goal または task_1 があれば記録した日とみなす）
   const { data: streakLogs } = await supabase
     .from('daily_logs')
-    .select('date')
+    .select('date, morning_goal, task_1')
     .eq('user_id', user.id)
-    .not('morning_goal', 'is', null)
     .order('date', { ascending: false })
     .limit(365);
 
   let streak = 0;
   if (streakLogs && streakLogs.length > 0) {
+    const activeLogs = streakLogs.filter((l) => l.morning_goal || l.task_1);
     const checkDate = new Date(today + 'T00:00:00+09:00');
     for (let i = 0; i < 365; i++) {
       const dateStr = checkDate.toISOString().split('T')[0];
-      if (streakLogs.some((l) => l.date === dateStr)) {
+      if (activeLogs.some((l) => l.date === dateStr)) {
         streak++;
       } else if (i > 0) {
         break;
