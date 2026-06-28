@@ -2,30 +2,13 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import type { DailyLog } from '@/lib/types';
+import { getToday, getWeekDates } from '@/lib/date';
 import MorningForm from '@/components/MorningForm';
 
 export const dynamic = 'force-dynamic';
 import EveningForm from '@/components/EveningForm';
 import Streak from '@/components/Streak';
 import Timeline from '@/components/Timeline';
-
-function getToday() {
-  const now = new Date();
-  const jst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
-  return jst.toISOString().split('T')[0];
-}
-
-function getWeekDates() {
-  const dates: string[] = [];
-  const now = new Date();
-  const jst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
-  for (let i = 6; i >= 0; i--) {
-    const d = new Date(jst);
-    d.setDate(d.getDate() - i);
-    dates.push(d.toISOString().split('T')[0]);
-  }
-  return dates;
-}
 
 async function calculateStreak(supabase: ReturnType<Awaited<ReturnType<typeof createClient>> extends infer T ? () => T : never>, userId: string) {
   const { data: logs } = await (await createClient())

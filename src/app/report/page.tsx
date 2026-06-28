@@ -1,14 +1,9 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import type { DailyLog } from '@/lib/types';
+import { getToday } from '@/lib/date';
 
 export const dynamic = 'force-dynamic';
-
-function getToday() {
-  const now = new Date();
-  const jst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
-  return jst.toISOString().split('T')[0];
-}
 
 function getMonthRange() {
   const today = getToday();
@@ -21,12 +16,12 @@ function getMonthRange() {
 }
 
 function getWeekStart(weeksAgo: number) {
-  const now = new Date();
-  const jst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
-  const day = jst.getDay();
+  const today = getToday();
+  const d = new Date(today + 'T00:00:00Z');
+  const day = d.getUTCDay();
   const diff = day === 0 ? 6 : day - 1;
-  jst.setDate(jst.getDate() - diff - weeksAgo * 7);
-  return jst.toISOString().split('T')[0];
+  d.setUTCDate(d.getUTCDate() - diff - weeksAgo * 7);
+  return d.toISOString().split('T')[0];
 }
 
 function getWeekDates(weekStart: string) {

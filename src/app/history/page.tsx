@@ -1,14 +1,9 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import type { DailyLog } from '@/lib/types';
+import { getToday } from '@/lib/date';
 
 export const dynamic = 'force-dynamic';
-
-function getToday() {
-  const now = new Date();
-  const jst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
-  return jst.toISOString().split('T')[0];
-}
 
 function formatDate(dateStr: string) {
   const d = new Date(dateStr + 'T00:00:00Z');
