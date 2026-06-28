@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import type { DailyLog } from '@/lib/types';
 import { getToday, getWeekDates } from '@/lib/date';
+import NoticeBanner from '@/components/NoticeBanner';
 import MorningForm from '@/components/MorningForm';
 
 export const dynamic = 'force-dynamic';
@@ -190,6 +191,9 @@ export default async function HomePage() {
 
   return (
     <div className="max-w-lg mx-auto px-4 py-6 space-y-5">
+      {/* お知らせ */}
+      <NoticeBanner />
+
       {/* ステータス + ストリーク */}
       <div className="flex items-center gap-4">
         <div className="flex-1">
