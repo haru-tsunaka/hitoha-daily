@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Noto_Serif_JP } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
@@ -11,10 +11,17 @@ const notoSerifJP = Noto_Serif_JP({
   display: "swap",
 });
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
+};
+
 export const metadata: Metadata = {
   title: "Hitoha Daily",
   description: "毎日の目標と振り返りを、ひとはにのせて。",
-  viewport: "width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,

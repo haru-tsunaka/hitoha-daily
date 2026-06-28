@@ -73,6 +73,9 @@ export default function LoginPage() {
     }
 
     localStorage.setItem('hitoha_daily_last_activity', Date.now().toString());
+    // iOS Safari のズームをリセット（パスワードマネージャーで微妙にズームされる対策）
+    window.scrollTo(0, 0);
+    document.body.style.minHeight = '100vh';
     router.push('/');
     router.refresh();
   };
