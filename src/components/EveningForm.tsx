@@ -122,7 +122,7 @@ export default function EveningForm({
             defaultValue={log?.evening_note || ''}
             placeholder="今日はどうだった？"
             rows={2}
-            className="w-full px-4 py-2.5 rounded-lg border border-brand-border text-sm focus:outline-none focus:border-gold transition-colors resize-none"
+            className="w-full px-4 py-2.5 rounded-lg border border-brand-border text-base focus:outline-none focus:border-gold transition-colors resize-none"
           />
         </div>
         <div className="flex items-center justify-between">

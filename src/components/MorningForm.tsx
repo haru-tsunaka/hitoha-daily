@@ -78,7 +78,7 @@ export default function MorningForm({
             name="morning_goal"
             defaultValue={log?.morning_goal || ''}
             placeholder="今日はこれをやりきる"
-            className="w-full px-4 py-2.5 rounded-lg border border-brand-border text-sm focus:outline-none focus:border-gold transition-colors"
+            className="w-full px-4 py-2.5 rounded-lg border border-brand-border text-base focus:outline-none focus:border-gold transition-colors"
           />
         </div>
         <div>
@@ -91,7 +91,7 @@ export default function MorningForm({
                   name={`task_${n}`}
                   defaultValue={log ? (log as unknown as Record<string, unknown>)[`task_${n}`] as string || '' : ''}
                   placeholder={`やること ${n}`}
-                  className="flex-1 px-4 py-2.5 rounded-lg border border-brand-border text-sm focus:outline-none focus:border-gold transition-colors"
+                  className="flex-1 px-4 py-2.5 rounded-lg border border-brand-border text-base focus:outline-none focus:border-gold transition-colors"
                 />
               </div>
             ))}
