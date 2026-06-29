@@ -17,7 +17,7 @@ export default function NoticeBanner() {
   useEffect(() => {
     const fetchNotice = async () => {
       const supabase = createClient();
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('notices')
         .select('id, title, body, created_at')
         .eq('active', true)
@@ -25,7 +25,7 @@ export default function NoticeBanner() {
         .limit(1)
         .single();
 
-      if (!data) return;
+      if (error || !data) return;
 
       // 既に閉じたお知らせはスキップ
       const dismissedId = localStorage.getItem('hitoha_dismissed_notice');

@@ -5,39 +5,11 @@ import type { DailyLog } from '@/lib/types';
 import { getToday, getWeekDates } from '@/lib/date';
 import NoticeBanner from '@/components/NoticeBanner';
 import MorningForm from '@/components/MorningForm';
-
-export const dynamic = 'force-dynamic';
 import EveningForm from '@/components/EveningForm';
 import Streak from '@/components/Streak';
 import Timeline from '@/components/Timeline';
 
-async function calculateStreak(supabase: ReturnType<Awaited<ReturnType<typeof createClient>> extends infer T ? () => T : never>, userId: string) {
-  const { data: logs } = await (await createClient())
-    .from('daily_logs')
-    .select('date')
-    .eq('user_id', userId)
-    .not('morning_goal', 'is', null)
-    .order('date', { ascending: false })
-    .limit(365);
-
-  if (!logs || logs.length === 0) return 0;
-
-  let streak = 0;
-  const today = getToday();
-  const checkDate = new Date(today + 'T00:00:00+09:00');
-
-  for (let i = 0; i < 365; i++) {
-    const dateStr = checkDate.toISOString().split('T')[0];
-    if (logs.some((l) => l.date === dateStr)) {
-      streak++;
-    } else if (i > 0) {
-      break;
-    }
-    checkDate.setDate(checkDate.getDate() - 1);
-  }
-
-  return streak;
-}
+export const dynamic = 'force-dynamic';
 
 export default async function HomePage() {
   const supabase = await createClient();

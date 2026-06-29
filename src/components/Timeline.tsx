@@ -1,11 +1,11 @@
 import type { DailyLog } from '@/lib/types';
 
 function formatDate(dateStr: string) {
-  const d = new Date(dateStr + 'T00:00:00+09:00');
-  const month = d.getMonth() + 1;
-  const day = d.getDate();
+  const d = new Date(dateStr + 'T00:00:00Z');
+  const month = d.getUTCMonth() + 1;
+  const day = d.getUTCDate();
   const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
-  const weekday = weekdays[d.getDay()];
+  const weekday = weekdays[d.getUTCDay()];
   return `${month}/${day}（${weekday}）`;
 }
 
