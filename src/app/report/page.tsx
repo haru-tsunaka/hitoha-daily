@@ -88,53 +88,59 @@ export default async function ReportPage() {
     calendarDays.push({ day: d, status });
   }
 
-  // --- ウィークリーデータ ---
-  const weeks = [];
-  for (let i = 0; i < 4; i++) {
+  // --- ウィークリーデータ（並列取得） ---
+  const weekConfigs = Array.from({ length: 4 }, (_, i) => {
     const start = getWeekStart(i);
     const dates = getWeekDates(start);
-    const end = dates[6];
+    return { i, start, dates, end: dates[6] };
+  });
 
-    const { data: logs } = await supabase
-      .from('daily_logs')
-      .select('*')
-      .eq('user_id', user.id)
-      .gte('date', start)
-      .lte('date', end)
-      .order('date', { ascending: true });
+  const weekResults = await Promise.all(
+    weekConfigs.map(({ start, end }) =>
+      supabase
+        .from('daily_logs')
+        .select('*')
+        .eq('user_id', user.id)
+        .gte('date', start)
+        .lte('date', end)
+        .order('date', { ascending: true })
+    )
+  );
 
-    const typedLogs = (logs || []) as DailyLog[];
+  const weeks = weekConfigs
+    .map(({ i, start, dates }, idx) => {
+      const typedLogs = (weekResults[idx].data || []) as DailyLog[];
+      if (i > 0 && typedLogs.length === 0) return null;
 
-    if (i > 0 && typedLogs.length === 0) continue;
+      const recordedDays = typedLogs.filter((l) => l.morning_goal || l.task_1).length;
+      const totalTasks = typedLogs.reduce((sum, l) => {
+        return sum + [l.task_1, l.task_2, l.task_3].filter(Boolean).length;
+      }, 0);
+      const doneTasks = typedLogs.reduce((sum, l) => {
+        return sum + [l.task_1_done, l.task_2_done, l.task_3_done].filter(Boolean).length;
+      }, 0);
+      const rate = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
 
-    const recordedDays = typedLogs.filter((l) => l.morning_goal || l.task_1).length;
-    const totalTasks = typedLogs.reduce((sum, l) => {
-      return sum + [l.task_1, l.task_2, l.task_3].filter(Boolean).length;
-    }, 0);
-    const doneTasks = typedLogs.reduce((sum, l) => {
-      return sum + [l.task_1_done, l.task_2_done, l.task_3_done].filter(Boolean).length;
-    }, 0);
-    const rate = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
+      const dayStatus = dates.map((date) => {
+        const log = typedLogs.find((l) => l.date === date);
+        const isFuture = date > today;
+        if (isFuture) return 'future';
+        if (!log || (!log.morning_goal && !log.task_1)) return 'empty';
+        if (log.evening_note || log.task_1_done || log.task_2_done || log.task_3_done) return 'complete';
+        return 'morning';
+      });
 
-    const dayStatus = dates.map((date) => {
-      const log = typedLogs.find((l) => l.date === date);
-      const isFuture = date > today;
-      if (isFuture) return 'future';
-      if (!log || (!log.morning_goal && !log.task_1)) return 'empty';
-      if (log.evening_note || log.task_1_done || log.task_2_done || log.task_3_done) return 'complete';
-      return 'morning';
-    });
-
-    weeks.push({
-      label: formatWeekRange(start, end),
-      current: i === 0,
-      recordedDays,
-      totalTasks,
-      doneTasks,
-      rate,
-      dayStatus,
-    });
-  }
+      return {
+        label: formatWeekRange(start, dates[6]),
+        current: i === 0,
+        recordedDays,
+        totalTasks,
+        doneTasks,
+        rate,
+        dayStatus,
+      };
+    })
+    .filter((w): w is NonNullable<typeof w> => w !== null);
 
   return (
     <div className="max-w-lg mx-auto px-4 py-6 space-y-5">

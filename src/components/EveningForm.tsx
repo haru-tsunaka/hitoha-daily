@@ -99,6 +99,7 @@ export default function EveningForm({
                 const done = log ? (log as unknown as Record<string, unknown>)[task.doneKey] as boolean : false;
                 return (
                   <label key={i} className="flex items-center gap-3 cursor-pointer group">
+                    <input type="hidden" name={task.doneKey} value="false" />
                     <input
                       type="checkbox"
                       name={task.doneKey}
