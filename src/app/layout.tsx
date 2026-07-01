@@ -23,6 +23,10 @@ export const metadata: Metadata = {
   title: "Hitoha Daily",
   description: "毎日の目標と振り返りを、ひとはにのせて。",
   manifest: "/manifest.json",
+  icons: {
+    icon: "/favicon.svg",
+    apple: "/apple-touch-icon.png",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
